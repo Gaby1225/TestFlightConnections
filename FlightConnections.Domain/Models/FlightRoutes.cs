@@ -8,8 +8,8 @@ namespace FlightConnections.Domain.Models
         [SwaggerSchema(ReadOnly = true)]
         [Key]
         public int Id { get; set; }
-        public string RouteStart { get; set; }
-        public string RouteFinish { get; set; }
-        public double Value { get; set; }
+        public string Origin { get; set; }
+        public string Destiny { get; set; }
+        public string Value { get; set; }
     }
 }

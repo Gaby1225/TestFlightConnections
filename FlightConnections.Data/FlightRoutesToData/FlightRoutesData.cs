@@ -14,14 +14,11 @@ namespace FlightConnections.Data.FlightRoutesToData
             _appDbContext = appDbContext;
         }
 
-        public async Task<FlightRoutes> Create(FlightRoutes flight) //testar para cadastrar vários de uma vez
+        public async Task<FlightRoutes> Create(FlightRoutes flight)
         {
             flight.Id = 0;
-            flight.RouteStart = "";
-            flight.RouteFinish = "";
-            flight.Value = 0;
 
-            _appDbContext.FlightRoute.Add(flight);
+            _appDbContext.Connections.Add(flight);
             await _appDbContext.SaveChangesAsync();
 
             return flight;
@@ -29,28 +26,28 @@ namespace FlightConnections.Data.FlightRoutesToData
 
         public async Task<IEnumerable<FlightRoutes>> Get()
         {
-            return await _appDbContext.FlightRoute.ToListAsync();
+            return await _appDbContext.Connections.ToListAsync();
         }
 
-        public async Task<FlightRoutes> Get(int id)
+        public async Task<FlightRoutes> Get(string start, string finish) //ajustar para o certo
         {
-            return await _appDbContext.FlightRoute.FindAsync(id);
+            return await _appDbContext.Connections.FindAsync(1);
         }
 
         public async Task<FlightRoutes> Update(FlightRoutes flight)
         {
-            _appDbContext.FlightRoute.Update(flight);
+            _appDbContext.Connections.Update(flight);
             await _appDbContext.SaveChangesAsync();
             return flight;
         }
 
-
+        
         public async Task<FlightRoutes> Delete(int id)
         {
-            var cat = await _appDbContext.FlightRoute.FindAsync(id);
-            _appDbContext.FlightRoute.Remove(cat);
+            var flight = await _appDbContext.Connections.FindAsync(id);
+            _appDbContext.Connections.Remove(flight);
             await _appDbContext.SaveChangesAsync();
-            return cat;
+            return flight;
         }
 
 
