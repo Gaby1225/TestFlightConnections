@@ -29,9 +29,16 @@ namespace FlightConnections.Data.FlightRoutesToData
             return await _appDbContext.Connections.ToListAsync();
         }
 
-        public async Task<FlightRoutes> Get(string start, string finish) //ajustar para o certo
+        public async Task<IEnumerable<FlightRoutes>> Get(string consult, string identification) //ajustar para o certo
         {
-            return await _appDbContext.Connections.FindAsync(1);
+            if (identification == "destiny")
+            {
+                return await _appDbContext.Connections.Where(x => x.Destiny == consult).ToListAsync();
+            }
+            else
+            {
+                return await _appDbContext.Connections.Where(x => x.Origin == consult).ToListAsync();
+            }
         }
 
         public async Task<FlightRoutes> Update(FlightRoutes flight)

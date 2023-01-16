@@ -1,18 +1,25 @@
 ﻿using AutoMapper;
 using FlightConnections.Domain.Interfaces;
 using FlightConnections.Domain.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Text;
 
 namespace FlightConnections.Controllers
 {
     [ApiController]
-    //[Produces("application/json")]
+    [Produces("application/json")]
     [Route("/api/V1/FlightConnections")]
     public class FlightConnectionsController : ControllerBase
     {
         private readonly IGenerateMethodsCrud<FlightRoutes> _flightRoutesRepository;
         private readonly ILogger<FlightConnectionsController> _logger;
+        public Dictionary<FlightRoutes, HashSet<FlightRoutes>> AdjacencyList { get; } = new Dictionary<FlightRoutes, HashSet<FlightRoutes>>();
 
         public FlightConnectionsController(ILogger<FlightConnectionsController> logger, IGenerateMethodsCrud<FlightRoutes> flightRoutesRepository)
         {
@@ -28,40 +35,153 @@ namespace FlightConnections.Controllers
             return Ok(retorno);
         }
 
-        [HttpGet("{start}/{finish}")]
-        public async Task<ActionResult<FlightRoutes>> Get(string start, string finish) // trazer específico a rota marba
+        [HttpGet("{origin}/{destiny}")]
+        public async Task<ActionResult<IEnumerable<FlightRoutes>>> Get(string origin, string destiny) // trazer específico a rota marba
         {
-            var flightRoutes = await _flightRoutesRepository.Get();
+            origin = origin.ToString().ToUpper();
+            destiny = destiny.ToString().ToUpper(); //metodo genérico?
 
-            for (int n = 0; n < flightRoutes.Count(); n++)
+            var flightOrigin = await _flightRoutesRepository.Get(origin, "origin");
+
+            var result = CalculateBestRoute(flightOrigin, origin, destiny);
+
+            return Ok(result); //chama método pra fazer a lógica do mais barato //CalculateBestRoute(flightOrigin);
+
+        }
+
+        [NonAction]
+        public string CalculateBestRoute(IEnumerable<FlightRoutes> routes, string origin, string destiny) //trazer os 2?
+        {
+            int n = 0;
+
+            List<FlightRoutes> results = new List<FlightRoutes>();
+            Dictionary<int, FlightRoutes> graph = new Dictionary<int, FlightRoutes>();
+            List<FlightRoutes> queue = new List<FlightRoutes>();
+            IEnumerable<FlightRoutes> nextRout;
+
+            var routeLine = routes.ToList();
+            var routeNext = nextRout.ToList();
+
+            foreach (var route in routeLine)
             {
-                var routes = flightRoutes.ToList();
+                queue.Add(route);
+            }
 
-                if (routes[n].Origin == start && routes[n].Destiny == finish)
+            if (routeLine[0].Destiny == destiny)
+            {
+                //return Ok(); //retorna a fila e o valor
+            }
+
+            
+
+            int vlr = queue.Count;
+            string newOrigin;
+            int i = 0;
+            int vlrNext = 0;
+            StringBuilder stringBuilder = new StringBuilder();
+            double preco;
+            var resultFind;
+
+            while (vlr != 0)
+            {
+                foreach (var route in routeLine)
                 {
-                    return Ok(routes[n]);
+                    string c = route.Destiny.ToString();
+                    results.Add(c);
+                }                             
+
+                //nextRout = routes;
+                if (vlrNext != 0)
+                {
+                    foreach (var route in routeNext)
+                    {
+                        queue.Add(route);
+                    }
+
+                    resultFind = routeNext.Find(x => x.Destiny == destiny);
                 }
                 else
                 {
-                    CalculateBestRoute(routes[n].Origin, routes[n].Destiny);
+                    resultFind = queue.Find(x => x.Destiny == destiny);
                 }
+
+                if (resultFind != null)
+                {
+                    
+                    graph.Add(i, queue);
+                    vlr = 0;
+                    stringBuilder += "Caminho: ";
+                    for (int b = 1; b < graph.Count; b++)
+                    {
+                        preco += Convert.ToDouble(graph.Values);
+                        stringBuilder += graph[n].Origin.ToString() + " - ";    
+                    }
+                    //return Ok(); //retorna a fila e o valor
+                    stringBuilder += destiny.ToString() + " - R$" + preco.ToString();
+                    
+                }
+                else
+                {
+                    //graph.Add(i, queue);
+                    newOrigin = results[0].Destiny;
+                    results.Remove(results[0]);
+                    IEnumerable<FlightRoutes> nextRout = _flightRoutesRepository.Get(newOrigin, "origin");
+                    
+                    vlrNext = routeNext.Count;
+                    vlr = vlrNext;
+                }
+
             }
 
-            return Ok(flightRoutes);
+            return stringBuilder.ToString();
 
+            //    //bfs old
+            //    while (queue.Count != 0)
+            //{
+            //    List<FlightRoutes> path = new List<FlightRoutes>(queue.Remove(0));
+
+            //    List<FlightRoutes> node = new List<FlightRoutes>(path[-1]);
+
+            //    List<FlightRoutes> neighbours = new List<FlightRoutes>(graph.Enqueue(node));
+
+            //    foreach(var neigbour in neighbours)
+            //    {
+            //        if (path.Contains(neigbour)) 
+            //        {
+            //            continue;
+            //        }
+
+            //        List<FlightRoutes> newPath = new List<FlightRoutes>(path);
+
+            //        newPath.Append<FlightRoutes>(path);
+            //        newPath.Append<FlightRoutes>(neigbour);
+
+            //        queue.Append<FlightRoutes>(newPath);
+
+            //        if(neigbour == destiny)
+            //        {
+            //            results.Append<FlightRoutes>(newPath);
+            //            n = n + 1;
+            //        }
+            //        else
+            //        {
+
+            //        }
+            //    }
+            //}
+
+            //return Ok();
         }
-
-        public string CalculateBestRoute(string origin, string destiny)
-        {
-
-        }
-
 
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Post([Bind("Origin, Destiny, Value")][FromBody] FlightRoutes model)
         {
+            model.Origin = model.Origin.ToString().ToUpper();
+            model.Destiny = model.Destiny.ToString().ToUpper();
+            //fazer de valor 
+
             try
             {
                 if (!ModelState.IsValid) { return BadRequest(ModelState); }
