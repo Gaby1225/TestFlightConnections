@@ -9,9 +9,9 @@ namespace FlightConnections.DbMigrations.Versions
         {
             Create.Table("Connections")
                 .WithColumn("Id").AsInt32().PrimaryKey().Identity()
-                .WithColumn("Origin").AsAnsiString(50).NotNullable()
-                .WithColumn("Destiny").AsAnsiString(50).NotNullable()
-                .WithColumn("Value").AsAnsiString(50).NotNullable();
+                .WithColumn("Origin").AsAnsiString(3).NotNullable()
+                .WithColumn("Destiny").AsAnsiString(3).NotNullable()
+                .WithColumn("Value").AsDouble().NotNullable();
         }
         public override void Down()
         {

@@ -6,10 +6,7 @@ namespace FlightConnections.Domain.Interfaces
     public interface IGenerateMethodsCrud<T>
     {
         Task<IEnumerable<T>> Get();
-        //Task<T> Get(int id);
-
         Task<IEnumerable<T>> Get(string consult, string identification);
-
         Task<T> Create(T t);
         Task<T> Update(T t);
         Task<T> Delete(int id);

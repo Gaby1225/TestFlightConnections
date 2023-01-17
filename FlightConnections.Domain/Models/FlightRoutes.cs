@@ -10,6 +10,6 @@ namespace FlightConnections.Domain.Models
         public int Id { get; set; }
         public string Origin { get; set; }
         public string Destiny { get; set; }
-        public string Value { get; set; }
+        public double Value { get; set; }
     }
 }

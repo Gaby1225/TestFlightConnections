@@ -28,6 +28,8 @@ namespace FlightConnections.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<ActionResult<IEnumerable<FlightRoutes>>> Get()
         {
 
@@ -35,142 +37,93 @@ namespace FlightConnections.Controllers
             return Ok(retorno);
         }
 
+        /// <summary>
+        /// Get all informations from database
+        /// </summary>
+        /// <remarks>
+        /// Funciona com no máximo 3 caminhos: SCL - ORL - CDG :'C
+        /// </remarks>
+        /// <param name="destiny">string com 3 letras</param>
+        /// <param name="origin">string com 3 letras</param>
         [HttpGet("{origin}/{destiny}")]
-        public async Task<ActionResult<IEnumerable<FlightRoutes>>> Get(string origin, string destiny) // trazer específico a rota marba
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        public async Task<ActionResult<IEnumerable<FlightRoutes>>> Get(string origin, string destiny)
         {
-            origin = origin.ToString().ToUpper();
-            destiny = destiny.ToString().ToUpper(); //metodo genérico?
-
-            var flightOrigin = await _flightRoutesRepository.Get(origin, "origin");
-
-            var result = CalculateBestRoute(flightOrigin, origin, destiny);
-
-            return Ok(result); //chama método pra fazer a lógica do mais barato //CalculateBestRoute(flightOrigin);
-
-        }
-
-        [NonAction]
-        public string CalculateBestRoute(IEnumerable<FlightRoutes> routes, string origin, string destiny) //trazer os 2?
-        {
-            int n = 0;
-
-            List<FlightRoutes> results = new List<FlightRoutes>();
-            Dictionary<int, FlightRoutes> graph = new Dictionary<int, FlightRoutes>();
-            List<FlightRoutes> queue = new List<FlightRoutes>();
-            IEnumerable<FlightRoutes> nextRout;
-
-            var routeLine = routes.ToList();
-            var routeNext = nextRout.ToList();
-
-            foreach (var route in routeLine)
+            try
             {
-                queue.Add(route);
-            }
+                origin = origin.ToString().ToUpper();
+                destiny = destiny.ToString().ToUpper();                
 
-            if (routeLine[0].Destiny == destiny)
-            {
-                //return Ok(); //retorna a fila e o valor
-            }
+                IEnumerable<FlightRoutes> flightOrigin = await _flightRoutesRepository.Get(origin, "origin");
 
-            
+                var routeLine = flightOrigin.ToList();
+                string destinyIteration = destiny;
+                string custo = "";
+                string passedDesitny = "";
+                StringBuilder sb = new StringBuilder(origin + " - ");
+                
+                List<string> flightsDestiny = new List<string>();
+                List<FlightRoutes> passed = new List<FlightRoutes>();
 
-            int vlr = queue.Count;
-            string newOrigin;
-            int i = 0;
-            int vlrNext = 0;
-            StringBuilder stringBuilder = new StringBuilder();
-            double preco;
-            var resultFind;
+                custo += routeLine[0].Value; //mudar pra double  > não é necesariamente na posição 0 
 
-            while (vlr != 0)
-            {
-                foreach (var route in routeLine)
+                if (routeLine[0].Destiny.ToString() == destinyIteration)
                 {
-                    string c = route.Destiny.ToString();
-                    results.Add(c);
-                }                             
-
-                //nextRout = routes;
-                if (vlrNext != 0)
-                {
-                    foreach (var route in routeNext)
-                    {
-                        queue.Add(route);
-                    }
-
-                    resultFind = routeNext.Find(x => x.Destiny == destiny);
+                    sb.Append(destinyIteration + " - ao custo de $" + routeLine[0].Value); //converter pra double
+                    return Ok(sb);
                 }
                 else
                 {
-                    resultFind = queue.Find(x => x.Destiny == destiny);
+                    while (routeLine.Count > 0)
+                    {
+                        for (int n = 0; n < routeLine.Count; n++)
+                        {
+                            var destinyForIteration = routeLine[n].Destiny;
+                            if (destinyForIteration != destinyIteration)
+                            {
+                                bool containsDestiny = flightsDestiny.Contains(destinyForIteration);
+                                if (!containsDestiny || flightsDestiny.Count == 0)
+                                    flightsDestiny.Add(destinyForIteration);
+                            }
+                            else
+                            {
+                                passed.Add(routeLine[0]);
+                                routeLine.Remove(routeLine[0]);
+
+                                foreach (var item in passed)
+                                {
+
+                                    var itemDestiny = item.Destiny;
+                                    sb.Append(item.Origin + " - ");
+                                    if (passedDesitny != itemDestiny)
+                                        passedDesitny = itemDestiny;
+                                    sb.Append(itemDestiny + " - ");
+
+                                    custo += item.Value;
+                                }
+
+                                sb.Append("ao custo de $" + custo);
+
+                                // return Ok(sb.ToString()); // talvez deva retornar só no final
+                            }
+                        }
+
+                        flightOrigin = await _flightRoutesRepository.Get(flightsDestiny[0], "origin");
+                        routeLine = flightOrigin.ToList();
+                        flightsDestiny.Remove(flightsDestiny[0]);
+                    }
                 }
 
-                if (resultFind != null)
-                {
-                    
-                    graph.Add(i, queue);
-                    vlr = 0;
-                    stringBuilder += "Caminho: ";
-                    for (int b = 1; b < graph.Count; b++)
-                    {
-                        preco += Convert.ToDouble(graph.Values);
-                        stringBuilder += graph[n].Origin.ToString() + " - ";    
-                    }
-                    //return Ok(); //retorna a fila e o valor
-                    stringBuilder += destiny.ToString() + " - R$" + preco.ToString();
-                    
-                }
-                else
-                {
-                    //graph.Add(i, queue);
-                    newOrigin = results[0].Destiny;
-                    results.Remove(results[0]);
-                    IEnumerable<FlightRoutes> nextRout = _flightRoutesRepository.Get(newOrigin, "origin");
-                    
-                    vlrNext = routeNext.Count;
-                    vlr = vlrNext;
-                }
+                return Ok(sb.ToString());
 
             }
+            catch (Exception ex)
+            {
 
-            return stringBuilder.ToString();
-
-            //    //bfs old
-            //    while (queue.Count != 0)
-            //{
-            //    List<FlightRoutes> path = new List<FlightRoutes>(queue.Remove(0));
-
-            //    List<FlightRoutes> node = new List<FlightRoutes>(path[-1]);
-
-            //    List<FlightRoutes> neighbours = new List<FlightRoutes>(graph.Enqueue(node));
-
-            //    foreach(var neigbour in neighbours)
-            //    {
-            //        if (path.Contains(neigbour)) 
-            //        {
-            //            continue;
-            //        }
-
-            //        List<FlightRoutes> newPath = new List<FlightRoutes>(path);
-
-            //        newPath.Append<FlightRoutes>(path);
-            //        newPath.Append<FlightRoutes>(neigbour);
-
-            //        queue.Append<FlightRoutes>(newPath);
-
-            //        if(neigbour == destiny)
-            //        {
-            //            results.Append<FlightRoutes>(newPath);
-            //            n = n + 1;
-            //        }
-            //        else
-            //        {
-
-            //        }
-            //    }
-            //}
-
-            //return Ok();
+                _logger.LogError(ex, ex.Message);
+                return StatusCode((int)HttpStatusCode.InternalServerError, ex);
+            }
         }
 
         [HttpPost]
@@ -180,13 +133,13 @@ namespace FlightConnections.Controllers
         {
             model.Origin = model.Origin.ToString().ToUpper();
             model.Destiny = model.Destiny.ToString().ToUpper();
-            //fazer de valor 
+            model.Value = Double.Parse(model.Value.ToString());
 
             try
             {
                 if (!ModelState.IsValid) { return BadRequest(ModelState); }
 
-                if (model.Origin != "" && model.Destiny != "" && model.Value != "")
+                if (model.Origin != "" && model.Destiny != "" && model.Value != null)
                 {
                     var flightRoutes = await _flightRoutesRepository.Create(model);
                     return Ok(flightRoutes);
@@ -211,7 +164,7 @@ namespace FlightConnections.Controllers
                 if (!ModelState.IsValid) { return BadRequest(ModelState); }
 
                 m.Id = id;
-                if (m.Origin != "" && m.Destiny != "" && m.Value != "")
+                if (m.Origin != "" && m.Destiny != "" && m.Value != null)
                 {
                     var flightRoutes = await _flightRoutesRepository.Update(m);
                     return Ok(flightRoutes);
@@ -227,10 +180,22 @@ namespace FlightConnections.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Delete(int id)
         {
-            var flightRoutes = await _flightRoutesRepository.Delete(id);
-            return Ok(flightRoutes);
+            try
+            {
+                var flightRoutes = await _flightRoutesRepository.Delete(id);
+                return Ok(flightRoutes);
+
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex, ex.Message);
+                return StatusCode((int)HttpStatusCode.InternalServerError, ex);
+            }
         }
     }
 }
