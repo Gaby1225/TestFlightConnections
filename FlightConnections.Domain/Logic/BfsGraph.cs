@@ -25,7 +25,7 @@ namespace FlightConnections.Domain.Logic
             var result = new Graph(origem);
 
             foreach (var item in routeList)
-                result.Neigborhood.Enqueue(new Graph(item.Destiny) { Parent = (result, item.Value) });
+                result.Neigborhood.Enqueue(new Graph(item.Destiny) { Parent = (result, ((double)item.Value)) });
 
             return result;
 
@@ -40,9 +40,9 @@ namespace FlightConnections.Domain.Logic
             {
                 var actualNeigborhood = neigborhoodToTest.Dequeue();
                 if (visiteds.Contains(actualNeigborhood)) continue;
-                if (actualNeigborhood.Nome == destiny) return actualNeigborhood;
+                if (actualNeigborhood.Origin == destiny) return actualNeigborhood;
                 visiteds.Add(actualNeigborhood);
-                var nextNode = getRoutesBfs(actualNeigborhood.Nome);
+                var nextNode = getRoutesBfs(actualNeigborhood.Origin);
                 nextNode.Parent = actualNeigborhood.Parent;
                 foreach (var item in nextNode.Neigborhood) neigborhoodToTest.Enqueue(item);
             }
@@ -58,7 +58,7 @@ namespace FlightConnections.Domain.Logic
 
             while (true)
             {
-                if (currentParent.Item1 is null) return string.Join(" - ", pilha.Select(x => x.Item1.Nome)) +
+                if (currentParent.Item1 is null) return string.Join(" - ", pilha.Select(x => x.Item1.Origin)) +
                         Environment.NewLine + $"Distância total: {pilha.Sum(x => x.Item2)}";
                 pilha.Push((currentParent.Item1, currentParent.Item1.Parent.Item2));
 

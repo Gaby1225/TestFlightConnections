@@ -11,7 +11,7 @@ namespace FlightConnections.DbMigrations.Versions
                 .WithColumn("Id").AsInt32().PrimaryKey().Identity()
                 .WithColumn("Origin").AsAnsiString(3).NotNullable()
                 .WithColumn("Destiny").AsAnsiString(3).NotNullable()
-                .WithColumn("Value").AsDouble().NotNullable();
+                .WithColumn("Value").AsDecimal(5,2).NotNullable();
         }
         public override void Down()
         {

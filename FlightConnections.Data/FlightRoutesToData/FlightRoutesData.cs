@@ -37,8 +37,22 @@ namespace FlightConnections.Data.FlightRoutesToData
             }
             else
             {
-                return await _appDbContext.Connections.Where(x => x.Origin == consult).ToListAsync();
+                try
+                {
+                    var a = await _appDbContext.Connections.Where(x => x.Origin == consult).ToListAsync();
+                    return a;
+                }
+                catch (Exception e)
+                {
+                    return null;
+                }
+                
             }
+        }
+
+        public async Task<FlightRoutes> Get(int id)
+        {
+            return await _appDbContext.Connections.FindAsync(id);
         }
 
         public async Task<FlightRoutes> Update(FlightRoutes flight)

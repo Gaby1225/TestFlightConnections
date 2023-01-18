@@ -20,7 +20,6 @@ namespace FlightConnections.Controllers
     {
         private readonly IGenerateMethodsCrud<FlightRoutes> _flightRoutesRepository;
         private readonly ILogger<FlightConnectionsController> _logger;
-        public Dictionary<FlightRoutes, HashSet<FlightRoutes>> AdjacencyList { get; } = new Dictionary<FlightRoutes, HashSet<FlightRoutes>>();
 
         public FlightConnectionsController(ILogger<FlightConnectionsController> logger, IGenerateMethodsCrud<FlightRoutes> flightRoutesRepository)
         {
@@ -38,16 +37,18 @@ namespace FlightConnections.Controllers
             return Ok(retorno);
         }
 
-        /// <summary>
-        /// Get all informations from database
-        /// </summary>
-        /// <remarks>
-        /// Funciona com no máximo 3 caminhos: SCL - ORL - CDG :'C
-        /// </remarks>
-        /// <param name="destiny">string com 3 letras</param>
-        /// <param name="origin">string com 3 letras</param>
-        [HttpGet("{origin}/{destiny}")]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<FlightRoutes>> Get(int id)
+        {
+            if (id > 0)
+            {
+                var flight = await _flightRoutesRepository.Get(id);
+                return Ok(flight);
+            }
+            return Ok();
+        }
 
+        [HttpGet("{origin}/{destiny}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<ActionResult<IEnumerable<FlightRoutes>>> Get(string origin, string destiny)
@@ -55,12 +56,13 @@ namespace FlightConnections.Controllers
             try
             {
                 origin = origin.ToString().ToUpper();
-                destiny = destiny.ToString().ToUpper();                
+                destiny = destiny.ToString().ToUpper();
 
                 IEnumerable<FlightRoutes> flightOrigin = await _flightRoutesRepository.Get(origin, "origin");
 
+
                 BfsGraph bfs = new BfsGraph(_flightRoutesRepository);
-                                
+
                 bfs.PathToReturn(bfs.BfsGraphTest(origin, destiny));
 
                 return Ok(bfs.ToString());
@@ -70,16 +72,16 @@ namespace FlightConnections.Controllers
                 //string custo = "";
                 //string passedDesitny = "";
                 //StringBuilder sb = new StringBuilder(origin + " - ");
-                
+
                 //List<string> flightsDestiny = new List<string>();
                 //List<FlightRoutes> passed = new List<FlightRoutes>();
 
-                //custo += routeLine[0].Value; //mudar pra double  > não é necesariamente na posição 0 
+                //custo += routeLine[0].Value;
 
                 //if (routeLine[0].Destiny.ToString() == destinyIteration)
                 //{
-                //    sb.Append(destinyIteration + " - ao custo de $" + routeLine[0].Value); //converter pra double
-                //    return Ok(sb);
+                //    sb.Append(destinyIteration + " - ao custo de $" + routeLine[0].Value);
+                //    return Ok(sb.ToString());
                 //}
                 //else
                 //{
@@ -113,7 +115,7 @@ namespace FlightConnections.Controllers
 
                 //                sb.Append("ao custo de $" + custo);
 
-                //                // return Ok(sb.ToString()); // talvez deva retornar só no final
+                //                return Ok(sb.ToString()); // talvez deva retornar só no final
                 //            }
                 //        }
 
@@ -141,7 +143,7 @@ namespace FlightConnections.Controllers
         {
             model.Origin = model.Origin.ToString().ToUpper();
             model.Destiny = model.Destiny.ToString().ToUpper();
-            model.Value = Double.Parse(model.Value.ToString());
+            model.Value = Decimal.Parse(model.Value.ToString());
 
             try
             {

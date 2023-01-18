@@ -2,7 +2,7 @@
 {
     public class Graph
     {
-        public string Nome { get; set; }
+        public string Origin { get; set; }
 
         public (Graph, double) Parent { get; set; }
 
@@ -10,18 +10,18 @@
 
         public Graph(string nome)
         {
-            Nome = nome;
+            Origin = nome;
         }
 
         public override int GetHashCode()
         {
-            return Nome.GetHashCode();
+            return Origin.GetHashCode();
         }
 
         public override bool Equals(object? obj)
         {
             if(obj is null) return false;
-            return Nome == ((Graph)obj).Nome;
+            return Origin == ((Graph)obj).Origin;
         }
     }
 }
