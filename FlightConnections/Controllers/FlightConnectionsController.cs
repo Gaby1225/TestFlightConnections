@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FlightConnections.Domain.Interfaces;
+using FlightConnections.Domain.Logic;
 using FlightConnections.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,7 @@ namespace FlightConnections.Controllers
         /// <param name="destiny">string com 3 letras</param>
         /// <param name="origin">string com 3 letras</param>
         [HttpGet("{origin}/{destiny}")]
+
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<ActionResult<IEnumerable<FlightRoutes>>> Get(string origin, string destiny)
@@ -57,65 +59,71 @@ namespace FlightConnections.Controllers
 
                 IEnumerable<FlightRoutes> flightOrigin = await _flightRoutesRepository.Get(origin, "origin");
 
-                var routeLine = flightOrigin.ToList();
-                string destinyIteration = destiny;
-                string custo = "";
-                string passedDesitny = "";
-                StringBuilder sb = new StringBuilder(origin + " - ");
+                BfsGraph bfs = new BfsGraph(_flightRoutesRepository);
+                                
+                bfs.PathToReturn(bfs.BfsGraphTest(origin, destiny));
+
+                return Ok(bfs.ToString());
+
+                //var routeLine = flightOrigin.ToList();
+                //string destinyIteration = destiny;
+                //string custo = "";
+                //string passedDesitny = "";
+                //StringBuilder sb = new StringBuilder(origin + " - ");
                 
-                List<string> flightsDestiny = new List<string>();
-                List<FlightRoutes> passed = new List<FlightRoutes>();
+                //List<string> flightsDestiny = new List<string>();
+                //List<FlightRoutes> passed = new List<FlightRoutes>();
 
-                custo += routeLine[0].Value; //mudar pra double  > não é necesariamente na posição 0 
+                //custo += routeLine[0].Value; //mudar pra double  > não é necesariamente na posição 0 
 
-                if (routeLine[0].Destiny.ToString() == destinyIteration)
-                {
-                    sb.Append(destinyIteration + " - ao custo de $" + routeLine[0].Value); //converter pra double
-                    return Ok(sb);
-                }
-                else
-                {
-                    while (routeLine.Count > 0)
-                    {
-                        for (int n = 0; n < routeLine.Count; n++)
-                        {
-                            var destinyForIteration = routeLine[n].Destiny;
-                            if (destinyForIteration != destinyIteration)
-                            {
-                                bool containsDestiny = flightsDestiny.Contains(destinyForIteration);
-                                if (!containsDestiny || flightsDestiny.Count == 0)
-                                    flightsDestiny.Add(destinyForIteration);
-                            }
-                            else
-                            {
-                                passed.Add(routeLine[0]);
-                                routeLine.Remove(routeLine[0]);
+                //if (routeLine[0].Destiny.ToString() == destinyIteration)
+                //{
+                //    sb.Append(destinyIteration + " - ao custo de $" + routeLine[0].Value); //converter pra double
+                //    return Ok(sb);
+                //}
+                //else
+                //{
+                //    while (routeLine.Count > 0)
+                //    {
+                //        for (int n = 0; n < routeLine.Count; n++)
+                //        {
+                //            var destinyForIteration = routeLine[n].Destiny;
+                //            if (destinyForIteration != destinyIteration)
+                //            {
+                //                bool containsDestiny = flightsDestiny.Contains(destinyForIteration);
+                //                if (!containsDestiny || flightsDestiny.Count == 0)
+                //                    flightsDestiny.Add(destinyForIteration);
+                //            }
+                //            else
+                //            {
+                //                passed.Add(routeLine[0]);
+                //                routeLine.Remove(routeLine[0]);
 
-                                foreach (var item in passed)
-                                {
+                //                foreach (var item in passed)
+                //                {
 
-                                    var itemDestiny = item.Destiny;
-                                    sb.Append(item.Origin + " - ");
-                                    if (passedDesitny != itemDestiny)
-                                        passedDesitny = itemDestiny;
-                                    sb.Append(itemDestiny + " - ");
+                //                    var itemDestiny = item.Destiny;
+                //                    sb.Append(item.Origin + " - ");
+                //                    if (passedDesitny != itemDestiny)
+                //                        passedDesitny = itemDestiny;
+                //                    sb.Append(itemDestiny + " - ");
 
-                                    custo += item.Value;
-                                }
+                //                    custo += item.Value;
+                //                }
 
-                                sb.Append("ao custo de $" + custo);
+                //                sb.Append("ao custo de $" + custo);
 
-                                // return Ok(sb.ToString()); // talvez deva retornar só no final
-                            }
-                        }
+                //                // return Ok(sb.ToString()); // talvez deva retornar só no final
+                //            }
+                //        }
 
-                        flightOrigin = await _flightRoutesRepository.Get(flightsDestiny[0], "origin");
-                        routeLine = flightOrigin.ToList();
-                        flightsDestiny.Remove(flightsDestiny[0]);
-                    }
-                }
+                //        flightOrigin = await _flightRoutesRepository.Get(flightsDestiny[0], "origin");
+                //        routeLine = flightOrigin.ToList();
+                //        flightsDestiny.Remove(flightsDestiny[0]);
+                //    }
+                //}
 
-                return Ok(sb.ToString());
+                //return Ok(sb.ToString());
 
             }
             catch (Exception ex)
