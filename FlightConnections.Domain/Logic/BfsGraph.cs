@@ -58,12 +58,8 @@ namespace FlightConnections.Domain.Logic
 
             while (true)
             {
-                if (currentParent.Item1 is null)
-                {
-                    var x = string.Join(" - ", pilha.Select(x => x.Item1.Origin))
-                        + $" ao custo de $ {pilha.Sum(x => x.Item2)}";
-                } //retornar só se for o melhor valor - salvar em uma lista de string?
-
+                if (currentParent.Item1 is null) return string.Join(" - ", pilha.Select(x => x.Item1.Origin)) +
+                        Environment.NewLine + $"Distância total: {pilha.Sum(x => x.Item2)}";
                 pilha.Push((currentParent.Item1, currentParent.Item1.Parent.Item2));
 
                 currentParent = currentParent.Item1.Parent;
