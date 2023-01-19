@@ -1,7 +1,5 @@
 # FlightConnections
 
-##Get > funciona só com 3 passos
+##Get > funciona pegando o primeiro que acha
 **Exemplo:**
-SCL > ORL > CDG 
-
-código está na controller (até refact)
+GRU > CDG : 75$
