@@ -32,20 +32,39 @@ namespace FlightConnections.Controllers
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<ActionResult<IEnumerable<FlightRoutes>>> Get()
         {
+            try
+            {
+                var retorno = await _flightRoutesRepository.Get();
+                return Ok(retorno);
+            }
+            catch (Exception ex)
+            {
 
-            var retorno = await _flightRoutesRepository.Get();
-            return Ok(retorno);
+                _logger.LogError(ex, ex.Message);
+                return StatusCode((int)HttpStatusCode.InternalServerError, ex);
+            }
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<ActionResult<FlightRoutes>> Get(int id)
         {
-            if (id > 0)
+            try
             {
-                var flight = await _flightRoutesRepository.Get(id);
-                return Ok(flight);
+                if (id > 0)
+                {
+                    var flight = await _flightRoutesRepository.Get(id);
+                    return Ok(flight);
+                }
+                return Ok();
             }
-            return Ok();
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex, ex.Message);
+                return StatusCode((int)HttpStatusCode.InternalServerError, ex);
+            }
         }
 
         [HttpGet("{origin}/{destiny}")]
@@ -58,75 +77,11 @@ namespace FlightConnections.Controllers
                 origin = origin.ToUpper();
                 destiny = destiny.ToUpper();
 
-                //IEnumerable<FlightRoutes> flightOrigin = await _flightRoutesRepository.Get(origin, "origin");
-
-
                 BfsGraph bfs = new BfsGraph(_flightRoutesRepository);
 
-                 var returnShipRoute = bfs.PathToReturn(await bfs.BfsGraphTest(origin, destiny));
+                var returnShipRoute = bfs.PathToReturn(await bfs.BfsGraphTest(origin, destiny));
 
                 return Ok(returnShipRoute);
-
-                //var routeLine = flightOrigin.ToList();
-                //string destinyIteration = destiny;
-                //string custo = "";
-                //string passedDesitny = "";
-                //StringBuilder sb = new StringBuilder(origin + " - ");
-
-                //List<string> flightsDestiny = new List<string>();
-                //List<FlightRoutes> passed = new List<FlightRoutes>();
-
-                //custo += routeLine[0].Value;
-
-                //if (routeLine[0].Destiny.ToString() == destinyIteration)
-                //{
-                //    sb.Append(destinyIteration + " - ao custo de $" + routeLine[0].Value);
-                //    return Ok(sb.ToString());
-                //}
-                //else
-                //{
-                //    while (routeLine.Count > 0)
-                //    {
-                //        for (int n = 0; n < routeLine.Count; n++)
-                //        {
-                //            var destinyForIteration = routeLine[n].Destiny;
-                //            if (destinyForIteration != destinyIteration)
-                //            {
-                //                bool containsDestiny = flightsDestiny.Contains(destinyForIteration);
-                //                if (!containsDestiny || flightsDestiny.Count == 0)
-                //                    flightsDestiny.Add(destinyForIteration);
-                //            }
-                //            else
-                //            {
-                //                passed.Add(routeLine[0]);
-                //                routeLine.Remove(routeLine[0]);
-
-                //                foreach (var item in passed)
-                //                {
-
-                //                    var itemDestiny = item.Destiny;
-                //                    sb.Append(item.Origin + " - ");
-                //                    if (passedDesitny != itemDestiny)
-                //                        passedDesitny = itemDestiny;
-                //                    sb.Append(itemDestiny + " - ");
-
-                //                    custo += item.Value;
-                //                }
-
-                //                sb.Append("ao custo de $" + custo);
-
-                //                return Ok(sb.ToString()); // talvez deva retornar só no final
-                //            }
-                //        }
-
-                //        flightOrigin = await _flightRoutesRepository.Get(flightsDestiny[0], "origin");
-                //        routeLine = flightOrigin.ToList();
-                //        flightsDestiny.Remove(flightsDestiny[0]);
-                //    }
-                //}
-
-                //return Ok(sb.ToString());
-
             }
             catch (Exception ex)
             {

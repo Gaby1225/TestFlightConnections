@@ -129,7 +129,7 @@ namespace Timesheet.IT.Steps
             }
         }
 
-        [When(@"editar a categoria por id")]
+        [When(@"editar a rota por id")]
         public async Task QuandoEditarARotaPorId(Table table)
         {
             listaId = table.CreateSet<FlightRoutes>().ToList();
@@ -144,7 +144,7 @@ namespace Timesheet.IT.Steps
         }
 
         //editar na lista
-        [Then(@"devem existir todas as categorias e a editada")]
+        [Then(@"devem existir todas as rotas e a editada")]
         public async Task EntaoDevemExistirTodasAsRotasEAEditada(Table table)
         {
             var result = await httpClient.GetAsync("api/V1/FlightConnections");
