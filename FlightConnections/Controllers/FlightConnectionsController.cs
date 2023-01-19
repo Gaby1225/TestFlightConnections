@@ -55,17 +55,17 @@ namespace FlightConnections.Controllers
         {
             try
             {
-                origin = origin.ToString().ToUpper();
-                destiny = destiny.ToString().ToUpper();
+                origin = origin.ToUpper();
+                destiny = destiny.ToUpper();
 
-                IEnumerable<FlightRoutes> flightOrigin = await _flightRoutesRepository.Get(origin, "origin");
+                //IEnumerable<FlightRoutes> flightOrigin = await _flightRoutesRepository.Get(origin, "origin");
 
 
                 BfsGraph bfs = new BfsGraph(_flightRoutesRepository);
 
-                bfs.PathToReturn(bfs.BfsGraphTest(origin, destiny));
+                 var returnShipRoute = bfs.PathToReturn(await bfs.BfsGraphTest(origin, destiny));
 
-                return Ok(bfs.ToString());
+                return Ok(returnShipRoute);
 
                 //var routeLine = flightOrigin.ToList();
                 //string destinyIteration = destiny;

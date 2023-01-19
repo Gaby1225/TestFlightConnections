@@ -67,7 +67,7 @@ Cenário: 0104 - Consultar rota por id
 		| 1  |  GRU   |   BRC   |   20  |
 		| 2  |  GRU   |   ORL   |   10  |
 		| 3  |  GRU   |   CDG   |   10  |
-	Quando consultar rota cadastrada por id
+	Quando eu consultar rota cadastrada por id
 		| Id | Origin | Destiny | Value |
 		| 1  |  GRU   |   BRC   |   20  |
 	Entao deve existir a rota consultada por id

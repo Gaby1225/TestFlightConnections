@@ -438,7 +438,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "BRC",
                             "20"});
 #line 70
- testRunner.When("consultar rota cadastrada por id", ((string)(null)), table12, "Quando ");
+ testRunner.When("eu consultar rota cadastrada por id", ((string)(null)), table12, "Quando ");
 #line hidden
                 TechTalk.SpecFlow.Table table13 = new TechTalk.SpecFlow.Table(new string[] {
                             "Id",

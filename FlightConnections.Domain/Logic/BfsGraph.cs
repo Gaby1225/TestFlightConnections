@@ -11,16 +11,16 @@ namespace FlightConnections.Domain.Logic
 {
     public class BfsGraph
     {
-        private readonly IGenerateMethodsCrud<FlightRoutes> _flightRoutesRepository; // = new List<FlightRoutes>();
+        private readonly IGenerateMethodsCrud<FlightRoutes> _flightRoutesRepository;
 
         public BfsGraph(IGenerateMethodsCrud<FlightRoutes> flightRoutesRepository)
         {
             _flightRoutesRepository = flightRoutesRepository;
         }
 
-        public Graph getRoutesBfs(string origem)
+        public async Task<Graph> getRoutesBfs(string origem)
         {
-            IEnumerable<FlightRoutes> originGet = (IEnumerable<FlightRoutes>)_flightRoutesRepository.Get(origem, "origin");
+            IEnumerable<FlightRoutes> originGet = await _flightRoutesRepository.Get(origem, "origin");
             var routeList = originGet.ToList();
             var result = new Graph(origem);
 
@@ -30,9 +30,9 @@ namespace FlightConnections.Domain.Logic
             return result;
 
         }
-        public Graph BfsGraphTest(string origin, string destiny)
+        public async Task<Graph> BfsGraphTest(string origin, string destiny)
         {
-            var originGraph = getRoutesBfs(origin); //não pode passar os dados da lista
+            var originGraph = await getRoutesBfs(origin);
             var neigborhoodToTest = new Queue<Graph>(originGraph.Neigborhood);
             var visiteds = new HashSet<Graph>();
 
@@ -42,7 +42,7 @@ namespace FlightConnections.Domain.Logic
                 if (visiteds.Contains(actualNeigborhood)) continue;
                 if (actualNeigborhood.Origin == destiny) return actualNeigborhood;
                 visiteds.Add(actualNeigborhood);
-                var nextNode = getRoutesBfs(actualNeigborhood.Origin);
+                var nextNode = await getRoutesBfs(actualNeigborhood.Origin);
                 nextNode.Parent = actualNeigborhood.Parent;
                 foreach (var item in nextNode.Neigborhood) neigborhoodToTest.Enqueue(item);
             }
@@ -58,12 +58,18 @@ namespace FlightConnections.Domain.Logic
 
             while (true)
             {
-                if (currentParent.Item1 is null) return string.Join(" - ", pilha.Select(x => x.Item1.Origin)) +
-                        Environment.NewLine + $"Distância total: {pilha.Sum(x => x.Item2)}";
+                if (currentParent.Item1 is null)
+                {
+                    var x = string.Join(" - ", pilha.Select(x => x.Item1.Origin))
+                        + $" ao custo de $ {pilha.Sum(x => x.Item2)}";
+                } //retornar só se for o melhor valor - salvar em uma lista de string?
+
                 pilha.Push((currentParent.Item1, currentParent.Item1.Parent.Item2));
 
                 currentParent = currentParent.Item1.Parent;
-            }
+            } //talvez salvar em uma lista todos que forem achados
+
+            //fazer if pra vir o item2 mais barato - testar se fica tudo salvo na lista "pilha"
         }
     }
 
