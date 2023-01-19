@@ -13,12 +13,13 @@ namespace FlightConnections.Data.FlightRoutesToData
         {
             _appDbContext = appDbContext;
         }
-
+        
         public async Task<FlightRoutes> Create(FlightRoutes flight)
         {
             flight.Id = 0;
 
             _appDbContext.Connections.Add(flight);
+
             await _appDbContext.SaveChangesAsync();
 
             return flight;
@@ -26,6 +27,7 @@ namespace FlightConnections.Data.FlightRoutesToData
 
         public async Task<IEnumerable<FlightRoutes>> Get()
         {
+
             return await _appDbContext.Connections.ToListAsync();
         }
 
@@ -48,19 +50,25 @@ namespace FlightConnections.Data.FlightRoutesToData
                 }
                 
             }
+
         }
 
         public async Task<FlightRoutes> Get(int id)
         {
+
             return await _appDbContext.Connections.FindAsync(id);
+
         }
 
         public async Task<FlightRoutes> Update(FlightRoutes flight)
         {
+
             _appDbContext.Connections.Update(flight);
+            
             await _appDbContext.SaveChangesAsync();
             return flight;
         }
+
 
         
         public async Task<FlightRoutes> Delete(int id)
@@ -69,6 +77,7 @@ namespace FlightConnections.Data.FlightRoutesToData
             _appDbContext.Connections.Remove(flight);
             await _appDbContext.SaveChangesAsync();
             return flight;
+
         }
 
 

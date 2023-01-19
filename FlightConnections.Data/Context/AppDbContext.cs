@@ -10,5 +10,6 @@ namespace FlightConnections.Data.Context
 
         }
         public DbSet<FlightRoutes> Connections { get; set; }
+
     }
 }
