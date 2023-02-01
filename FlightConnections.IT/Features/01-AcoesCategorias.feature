@@ -61,7 +61,7 @@ Cenário: 0103 - Consultar todas as rotas
 		| 2  |  GRU   |   ORL   |   10  |
 		| 3  |  GRU   |   CDG   |   10  |
 
-Cenário: 0104 - Consultar rota por id
+Cenário: 0104 - Consultar a rota por id
 	Dados as seguintes informações para a consulta de rota por id:
 		| Id | Origin | Destiny | Value |
 		| 1  |  GRU   |   BRC   |   20  |
